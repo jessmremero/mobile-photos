@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/animate.css/3.1.0/animate.min.css">
+    <script src="./zepto.min.js"></script>
+    <script src="./touch.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{margin:0;padding:0;}
+        body{background: black;}
+        ul,li{list-style:none;}
+        li{float:left;width:100px;height:100px;overflow:hidden;}
+        .large{width:100%;height:100%;position:absolute;top:opx;left:0px;background-color:black;}
+    </style>
+</head>
+<body>
+    <ul class="img-container" id="container">
+        <li><img src="./images/1.jpg"></li>
+
+    </ul>
+    <div class="large animated fadeIn" id="large_container" style="display:none;"> 
+        <img  id="large_img" > 
+    </div>
+<script>
+    var total = 16;
+    var zWin = $(window)
+    var render = function(){
+        var padding = 2
+        var winWidth = zWin.width();
+        var picWidth = Math.floor((winWidth-padding*3)/4)
+        var tmpl = ''
+        for(var i = 1;i<=total;i++){
+            var p = padding;
+            if(i%4===1){
+                p=0;
+            }
+            var imgSrc = 'images/'+i+'.jpg';
+            tmpl +='<li data-id="'+i+'" class="animated bounceIn" style="width:'+picWidth+'px;height:'+picWidth+'px;padding-left:'+p+'px;padding-top:'+padding+'px;"><canvas id="cvs_'+i+'"></canvas></li>'
+            var imageObj = new Image()
+            imageObj.index = i
+            imageObj.onload = function(){
+                var cvs = $('#cvs_'+this.index)[0].getContext('2d')
+                cvs.width = this.width
+                cvs.height = this.height
+                cvs.drawImage(this,0,0)
+            }
+            imageObj.src = imgSrc
+        }
+        $('#container').html(tmpl)
+    }
+    render();
+    var wImage = $('#large_img')
+    var loadImg = function(id){
+       $('#large_container').css({
+          width:zWin.width(),
+          height:zWin.height()
+       }).show()
+       var imgsrc = 'images/'+id+'large.jpg'
+       var imageObj = new Image()
+       imageObj.onload = function(){
+           var w = this.width
+           var h = this.height
+           var winWidth = zWin.width()
+           var winHeight = zWin.height()
+           var realw = winHeight*w/h
+           var realh = winWidth*h/w
+           var paddingTop = parseInt((winHeight-realh)/2)
+           var paddingLeft = parseInt((winWidth-realw)/2)
+           if(h/w>1.2){
+               wImage.attr('src',imgsrc).css('height',winHeight).css('padding-left',paddingLeft)
+           }else{
+            wImage.attr('src',imgsrc).css('width',winWidth).css('padding-top',paddingTop)
+           }
+       }
+       imageObj.src = imgsrc
+    }
+    var cid;
+    $('#container').delegate('li','tap',function(){
+        var _id = cid = $(this).attr('data-id')
+        loadImg(_id)
+		document.addEventListener('touchmove',stopPrevent,false)
+    })
+	function stopPrevent(e) {
+        e.preventDefault();
+        return false;
+    }
+    var lock = false
+    $('#large_container').tap(function(){
+        $(this).hide();
+		document.removeEventListener('touchmove',stopPrevent, false);
+     }).swipeLeft(function(){
+         cid++;
+		 console.log(cid)
+         if(cid>total){
+             cid = total
+         }else{
+             loadImg(cid)
+         }
+        }).swipeRight(function(){
+           cid--;
+		   
+           if(cid<1){
+             cid = 1
+           } else{
+             loadImg(cid)
+         }
+        })    
+</script>
+    
+</body>
+</html>
